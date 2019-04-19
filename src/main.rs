@@ -399,50 +399,62 @@ impl TopInfo {
             TopInfo::print_map(self.referrers.iter(), &SortOrder::ByValue, self.max_results);
         }
 
-        println!("Top '{}' Client IPs", self.max_results);
-        TopInfo::print_map(
-            self.client_ips.iter(),
-            &SortOrder::ByValue,
-            self.max_results,
-        );
+        if self.client_ips.len() > 0 {
+            println!("Top '{}' Client IPs", self.max_results);
+            TopInfo::print_map(
+                self.client_ips.iter(),
+                &SortOrder::ByValue,
+                self.max_results,
+            );
+        }
 
-        println!(
-            "Top '{}' Backend Address (Cells & Platform VMs)",
-            self.max_results
-        );
-        TopInfo::print_map(
-            self.backend_ips.iter(),
-            &SortOrder::ByValue,
-            self.max_results,
-        );
+        if self.backend_ips.len() > 0 {
+            println!(
+                "Top '{}' Backend Address (Cells & Platform VMs)",
+                self.max_results
+            );
+            TopInfo::print_map(
+                self.backend_ips.iter(),
+                &SortOrder::ByValue,
+                self.max_results,
+            );
+        }
 
-        println!("Top '{}' X-Forwarded-For Ips", self.max_results);
-        TopInfo::print_map(
-            self.x_forwarded_fors.iter(),
-            &SortOrder::ByValue,
-            self.max_results,
-        );
+        if self.x_forwarded_fors.len() > 0 {
+            println!("Top '{}' X-Forwarded-For Ips", self.max_results);
+            TopInfo::print_map(
+                self.x_forwarded_fors.iter(),
+                &SortOrder::ByValue,
+                self.max_results,
+            );
+        }
 
-        println!("Top '{}' Destination Hosts", self.max_results);
-        TopInfo::print_map(self.hosts.iter(), &SortOrder::ByValue, self.max_results);
+        if self.hosts.len() > 0 {
+            println!("Top '{}' Destination Hosts", self.max_results);
+            TopInfo::print_map(self.hosts.iter(), &SortOrder::ByValue, self.max_results);
+        }
 
-        println!("Top '{}' Application UUIDs", self.max_results);
-        TopInfo::print_map(self.app_ids.iter(), &SortOrder::ByValue, self.max_results);
+        if self.app_ids.len() > 0 {
+            println!("Top '{}' Application UUIDs", self.max_results);
+            TopInfo::print_map(self.app_ids.iter(), &SortOrder::ByValue, self.max_results);
+        }
 
-        println!("Top '{}' Response Times", self.max_results);
-        TopInfo::print_map(
-            self.response_times.iter().map(|(k, v)| {
-                (
-                    if k.1 == f32::MAX {
-                        format!("{:2} to MAX", k.0)
-                    } else {
-                        format!("{:2} to {}", k.0, k.1)
-                    },
-                    v,
-                )
-            }),
-            &SortOrder::ByKey,
-            self.max_results,
-        );
+        if self.response_times.len() > 0 {
+            println!("Top Response Times");
+            TopInfo::print_map(
+                self.response_times.iter().map(|(k, v)| {
+                    (
+                        if k.1 == f32::MAX {
+                            format!("{:2} to MAX", k.0)
+                        } else {
+                            format!("{:2} to {}", k.0, k.1)
+                        },
+                        v,
+                    )
+                }),
+                &SortOrder::ByKey,
+                self.max_results,
+            );
+        }
     }
 }
