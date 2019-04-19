@@ -219,7 +219,7 @@ impl TopInfo {
         // count query path hits
         if let Some(path) = log_entry.request.uri().path_and_query() {
             self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.path().into()] += 1;
+            self.requests_query[path.as_str().into()] += 1;
         } else {
             // if path doesn't exist, then we still want to count that
             self.requests_no_query["<none>".to_string()] += 1;
@@ -247,7 +247,7 @@ impl TopInfo {
         // count query path hits
         if let Some(path) = log_entry.request.uri().path_and_query() {
             self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.path().into()] += 1;
+            self.requests_query[path.as_str().into()] += 1;
         } else {
             // if path doesn't exist, then we still want to count that
             self.requests_no_query["<none>".to_string()] += 1;
@@ -283,7 +283,7 @@ impl TopInfo {
         // count query path hits
         if let Some(path) = log_entry.request.uri().path_and_query() {
             self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.path().into()] += 1;
+            self.requests_query[path.as_str().into()] += 1;
         } else {
             // if path doesn't exist, then we still want to count that
             self.requests_no_query["<none>".to_string()] += 1;
