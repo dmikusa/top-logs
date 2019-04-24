@@ -503,7 +503,7 @@ impl TopInfo {
                     bucket_start = *key;
                 }
                 bucket_val += self.response_times[key];
-                if bucket_val > min_response_time_threshold {
+                if bucket_val >= min_response_time_threshold {
                     table.add_row(Row::new(vec![
                         cell!(format!(
                             "{:width$} to {:width$}",
@@ -517,15 +517,19 @@ impl TopInfo {
                     bucket_val = 0;
                 }
             }
-            table.add_row(Row::new(vec![
-                cell!(format!(
-                    "{:width$} to {:width$}",
-                    bucket_start,
-                    max_key + 1,
-                    width = max_width
-                )),
-                cell!(bucket_val),
-            ]));
+
+            if bucket_val > 0 {
+                table.add_row(Row::new(vec![
+                    cell!(format!(
+                        "{:width$} to {:width$}",
+                        bucket_start,
+                        max_key + 1,
+                        width = max_width
+                    )),
+                    cell!(bucket_val),
+                ]));
+            }
+
             table.printstd();
 
             println!();
