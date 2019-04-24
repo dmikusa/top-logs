@@ -1,6 +1,6 @@
 [package]
 name = "top-logs"
-version = "0.1.0"
+version = "1.1.0"
 authors = ["Daniel Mikusa <dmikusa@pivotal.io>"]
 edition = "2018"
 description = "Tops logs is a tool which can be used to parse through access logs to understand usage trends and hunt for problems"
@@ -11,7 +11,7 @@ keywords = ["access", "logs", "parse"]
 categories = ["parsing", "parser-implementations"]
 
 [dependencies]
-access_log_parser = "^0.1"
+access_log_parser = "^0"
 chrono = "^0.4"
 http = "^0.1"
 defaultmap = "^0.3"

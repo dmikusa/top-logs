@@ -18,7 +18,6 @@ use defaultmap::DefaultHashMap;
 use http::{Method, StatusCode};
 use prettytable::{cell, Row, Table};
 use std::cmp::Ordering;
-use std::f32;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
@@ -119,23 +118,11 @@ pub struct TopInfo {
     pub x_forwarded_fors: DefaultHashMap<String, usize>,
     pub hosts: DefaultHashMap<String, usize>,
     pub app_ids: DefaultHashMap<String, usize>,
-    pub response_times: Vec<((f32, f32), usize)>,
+    pub response_times: DefaultHashMap<usize, usize>,
 }
 
 impl TopInfo {
     pub fn new(max_results: usize, ignore_parse_errors: bool) -> TopInfo {
-        let mut response_times = Vec::with_capacity(10);
-        response_times.push(((0.0, 1.0), 0));
-        response_times.push(((1.0, 2.0), 0));
-        response_times.push(((2.0, 3.0), 0));
-        response_times.push(((3.0, 4.0), 0));
-        response_times.push(((4.0, 5.0), 0));
-        response_times.push(((5.0, 7.0), 0));
-        response_times.push(((7.0, 10.0), 0));
-        response_times.push(((10.0, 15.0), 0));
-        response_times.push(((15.0, 20.0), 0));
-        response_times.push(((20.0, f32::MAX), 0));
-
         TopInfo {
             max_results: max_results,
             ignore_parse_errors: ignore_parse_errors,
@@ -158,7 +145,7 @@ impl TopInfo {
             x_forwarded_fors: DefaultHashMap::new(0),
             hosts: DefaultHashMap::new(0),
             app_ids: DefaultHashMap::new(0),
-            response_times: response_times,
+            response_times: DefaultHashMap::new(0),
         }
     }
 
@@ -196,6 +183,9 @@ impl TopInfo {
             access_log_parser::LogEntry::CommonLog(log) => self.calc_common_log(log),
             access_log_parser::LogEntry::CombinedLog(log) => self.calc_combined_log(log),
             access_log_parser::LogEntry::GorouterLog(log) => self.calc_gorouter_log(log),
+            access_log_parser::LogEntry::CloudControllerLog(log) => {
+                self.calc_cloud_controller_log(log)
+            }
         }
     }
 
@@ -263,6 +253,56 @@ impl TopInfo {
         self.user_agents[log_entry.user_agent.unwrap_or("<none>").to_string()] += 1;
     }
 
+    fn calc_cloud_controller_log(&mut self, log_entry: access_log_parser::CloudControllerLogEntry) {
+        // count total requests
+        self.total_requests += 1;
+
+        // pick out oldest & newest log entries
+        if log_entry.timestamp < self.duration.start {
+            self.duration.start = log_entry.timestamp;
+        }
+        if log_entry.timestamp > self.duration.end {
+            self.duration.end = log_entry.timestamp;
+        }
+
+        // count individual resources
+        self.response_codes[log_entry.status_code] += 1;
+        self.request_methods[log_entry.request.method().clone()] += 1;
+
+        // count query path hits
+        if let Some(path) = log_entry.request.uri().path_and_query() {
+            self.requests_no_query[path.path().into()] += 1;
+            self.requests_query[path.as_str().into()] += 1;
+        } else {
+            // if path doesn't exist, then we still want to count that
+            self.requests_no_query["<none>".to_string()] += 1;
+            self.requests_query["<none>".to_string()] += 1;
+        }
+
+        // count referrer hits
+        if let Some(referrer) = log_entry.referrer {
+            self.referrers[referrer] += 1;
+        }
+
+        // count user agent hits
+        self.user_agents[log_entry.user_agent.unwrap_or("<none>").to_string()] += 1;
+
+        // count cloud controller specific hits
+        self.x_forwarded_fors[log_entry
+            .x_forwarded_for
+            .iter()
+            .map(|ip| ip.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")] += 1;
+        self.hosts[log_entry.request_host.into()] += 1;
+
+        // bucket response times
+        self.response_times[log_entry
+            .response_time
+            .map(|t| t.floor() as usize)
+            .unwrap_or(usize::max_value())] += 1;
+    }
+
     fn calc_gorouter_log(&mut self, log_entry: access_log_parser::GorouterLogEntry) {
         // count total requests
         self.total_requests += 1;
@@ -314,12 +354,10 @@ impl TopInfo {
         }
 
         // bucket response times
-        let response_time = log_entry.response_time;
-        for (range, cnt) in self.response_times.iter_mut() {
-            if response_time > range.0 && response_time < range.1 {
-                *cnt += 1;
-            }
-        }
+        self.response_times[log_entry
+            .response_time
+            .map(|t| t.floor() as usize)
+            .unwrap_or(usize::max_value())] += 1;
     }
 
     fn print_map<'a, I, K, V>(iter: I, sort_order: &SortOrder, max: usize)
@@ -441,20 +479,49 @@ impl TopInfo {
 
         if self.response_times.len() > 0 {
             println!("Top Response Times");
-            TopInfo::print_map(
-                self.response_times.iter().map(|(k, v)| {
-                    (
-                        if k.1 == f32::MAX {
-                            format!("{:2} to MAX", k.0)
-                        } else {
-                            format!("{:2} to {}", k.0, k.1)
-                        },
-                        v,
-                    )
-                }),
-                &SortOrder::ByKey,
-                self.max_results,
-            );
+            let mut keys: Vec<&usize> = self.response_times.keys().collect();
+            keys.sort();
+
+            let max_key = *self.response_times.keys().max().unwrap_or(&0);
+            let max_width = format!("{}", max_key).len();
+            println!("max_key: {}, width: {}", max_key, max_width);
+            println!();
+
+            let mut table = Table::new();
+            table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP);
+            let mut bucket_val: usize = 0;
+            let mut bucket_start: usize = 0;
+            for key in keys {
+                if bucket_start == 0 {
+                    bucket_start = *key;
+                }
+                bucket_val += self.response_times[key];
+                if bucket_val > 100 {
+                    table.add_row(Row::new(vec![
+                        cell!(format!(
+                            "{:width$} to {:width$}",
+                            bucket_start,
+                            key + 1,
+                            width = max_width
+                        )),
+                        cell!(bucket_val),
+                    ]));
+                    bucket_start = 0;
+                    bucket_val = 0;
+                }
+            }
+            table.add_row(Row::new(vec![
+                cell!(format!(
+                    "{:width$} to {:width$}",
+                    bucket_start,
+                    max_key + 1,
+                    width = max_width
+                )),
+                cell!(bucket_val),
+            ]));
+            table.printstd();
+
+            println!();
         }
     }
 }
