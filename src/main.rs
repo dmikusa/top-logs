@@ -47,6 +47,13 @@ fn main() {
                             .short("i")
                             .long("ignore-parse-errors")
                             .help("Don't log any parsing error"))
+                    .arg(Arg::with_name("min_response_time_threshold")
+                            .short("m")
+                            .long("min-response-time-threshold")
+                            .value_name("MIN_THRESHOLD")
+                            .help("Minimum threshold in number of requests for a response time bucket to be displayed. Smaller buckets are grouped together.")
+                            .takes_value(true)
+                            .default_value("100"))
                     .arg(Arg::with_name("access_logs")
                             .value_name("ACCESS_LOG")
                             .help("Access logs to process")
@@ -70,7 +77,7 @@ fn main() {
         }
     }
 
-    ti.print_summary();
+    ti.print_summary(value_t!(matches, "min_response_time_threshold", usize).unwrap());
 }
 
 pub enum SortOrder {
@@ -385,7 +392,7 @@ impl TopInfo {
         println!();
     }
 
-    pub fn print_summary(&self) {
+    pub fn print_summary(&self, min_response_time_threshold: usize) {
         println!();
         println!("Duration: {} to {}", self.duration.start, self.duration.end);
         println!();
@@ -484,7 +491,7 @@ impl TopInfo {
 
             let max_key = *self.response_times.keys().max().unwrap_or(&0);
             let max_width = format!("{}", max_key).len();
-            println!("max_key: {}, width: {}", max_key, max_width);
+            println!("threshold: {}", min_response_time_threshold);
             println!();
 
             let mut table = Table::new();
@@ -496,7 +503,7 @@ impl TopInfo {
                     bucket_start = *key;
                 }
                 bucket_val += self.response_times[key];
-                if bucket_val > 100 {
+                if bucket_val > min_response_time_threshold {
                     table.add_row(Row::new(vec![
                         cell!(format!(
                             "{:width$} to {:width$}",
