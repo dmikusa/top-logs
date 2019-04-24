@@ -4,34 +4,66 @@ Tops logs is a tool which can be used to parse through access logs to understand
 
 ## Features
 
-* Read access logs and report the following metrics for all log types:
-  - Duration of logs (oldest and newest log dates)
-  - Total number of requests
-  - Total number of requests the tool didn't understand/couldn't parse
-  - Top X Response Codes
-  - Top X Request Methods
-  - Top X Requests (no query params)
-  - Top X Requests (with query params)
-* Additional reports supported by combined & Gorouter log formats:
-  - Top X User Agents
-  - Top X Referrers
-  - Top X Client IPs
-* Additional reports supported by Gorouter log format:
-  - Top X Backend Address (Cells & Platform VMs)
-  - Top X X-Forwarded-For Ips
-  - Top X Destination Hosts
-  - Top X App GUIDs
-  - Response time histogram
 * Supported log formats:
   - Common
   - Combined
   - Gorouter
+  - Cloud Controller
+
+* Read access logs and report the following metrics:
+  - Common
+    - Duration of logs (oldest and newest log dates)
+    - Total number of requests
+    - Total number of requests the tool didn't understand/couldn't parse
+    - Top X Response Codes
+    - Top X Request Methods
+    - Top X Requests (no query params)
+    - Top X Requests (with query params)
+  - Combined
+    - Duration of logs (oldest and newest log dates)
+    - Total number of requests
+    - Total number of requests the tool didn't understand/couldn't parse
+    - Top X Response Codes
+    - Top X Request Methods
+    - Top X Requests (no query params)
+    - Top X Requests (with query params)
+    - Top X User Agents
+    - Top X Referrers
+    - Top X Client IPs
+  - Cloud Controller
+    - Duration of logs (oldest and newest log dates)
+    - Total number of requests
+    - Total number of requests the tool didn't understand/couldn't parse
+    - Top X Response Codes
+    - Top X Request Methods
+    - Top X Requests (no query params)
+    - Top X Requests (with query params)
+    - Top X User Agents
+    - Top X Referrers
+    - Top X X-Forwarded-For Ips
+    - Response time histogram
+  - Gorouter
+    - Duration of logs (oldest and newest log dates)
+    - Total number of requests
+    - Total number of requests the tool didn't understand/couldn't parse
+    - Top X Response Codes
+    - Top X Request Methods
+    - Top X Requests (no query params)
+    - Top X Requests (with query params)
+    - Top X User Agents
+    - Top X Referrers
+    - Top X Client IPs
+    - Top X X-Forwarded-For Ips
+    - Response time histogram
+    - Top X Backend Address (Cells & Platform VMs)
+    - Top X Destination Hosts
+    - Top X App GUIDs
 
 ## Usage
 
 ```
-$ top-logs -h
-top-logs 0.1.0
+$ ./target/release/top-logs -i -f cloud_controller data/cloud_controller/nginx.access.log* -h
+top-logs 1.1.0
 Daniel Mikusa <dmikusa@pivotal.io>
 Parses various access log formats and prints stats helpful for debugging/troubleshooting.
 
@@ -44,8 +76,13 @@ FLAGS:
     -V, --version                Prints version information
 
 OPTIONS:
-    -f, --format <LOG_FORMAT>    access log format [possible values: common, combined, gorouter, cloud_controller]
-    -t, --top <NUM>              number of results to display [default: 10]
+    -f, --format <LOG_FORMAT>
+            access log format [possible values: common, combined, gorouter, cloud_controller]
+
+    -m, --min-response-time-threshold <MIN_THRESHOLD>
+            Minimum threshold in number of requests for a response time bucket to be displayed. Smaller buckets are
+            grouped together. [default: 100]
+    -t, --top <NUM>                                      number of results to display [default: 10]
 
 ARGS:
     <ACCESS_LOG>...    Access logs to process
