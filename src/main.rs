@@ -486,23 +486,31 @@ impl TopInfo {
 
         if self.response_times.len() > 0 {
             println!("Top Response Times");
-            let mut keys: Vec<&usize> = self.response_times.keys().collect();
+            let mut keys: Vec<&usize> = self
+                .response_times
+                .keys()
+                .filter(|&k| *k < usize::max_value())
+                .collect();
             keys.sort();
 
-            let max_key = *self.response_times.keys().max().unwrap_or(&0);
+            let max_key = **keys.iter().max().unwrap_or(&&0);
             let max_width = format!("{}", max_key).len();
-            println!("threshold: {}", min_response_time_threshold);
+
             println!();
 
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP);
+
             let mut bucket_val: usize = 0;
             let mut bucket_start: usize = 0;
+
             for key in keys {
                 if bucket_start == 0 {
                     bucket_start = *key;
                 }
+
                 bucket_val += self.response_times[key];
+
                 if bucket_val >= min_response_time_threshold {
                     table.add_row(Row::new(vec![
                         cell!(format!(
@@ -527,6 +535,13 @@ impl TopInfo {
                         width = max_width
                     )),
                     cell!(bucket_val),
+                ]));
+            }
+
+            if self.response_times.contains_key(&usize::max_value()) {
+                table.add_row(Row::new(vec![
+                    cell!("<none>"),
+                    cell!(self.response_times.get(&usize::max_value())),
                 ]));
             }
 
