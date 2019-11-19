@@ -210,18 +210,25 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        self.request_methods[log_entry.request.method().clone()] += 1;
+        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+            self.request_methods[req.method().clone()] += 1;
+        }
         self.client_ips[log_entry.ip] += 1;
 
         // count query path hits
-        if let Some(path) = log_entry.request.uri().path_and_query() {
-            self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.as_str().into()] += 1;
-        } else {
-            // if path doesn't exist, then we still want to count that
-            self.requests_no_query["<none>".to_string()] += 1;
-            self.requests_query["<none>".to_string()] += 1;
-        }
+        let (path, path_no_query) = match log_entry.request {
+            access_log_parser::LogFormatValid::Valid(ref req) => (
+                req.uri()
+                    .path_and_query()
+                    .map(|p| p.as_str())
+                    .unwrap_or("<none>"),
+                req.uri().path(),
+            ),
+            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+        };
+        self.requests_no_query[path_no_query.to_string()] += 1;
+        self.requests_query[path.to_string()] += 1;
     }
 
     fn calc_combined_log(&mut self, log_entry: access_log_parser::CombinedLogEntry) {
@@ -238,18 +245,25 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        self.request_methods[log_entry.request.method().clone()] += 1;
+        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+            self.request_methods[req.method().clone()] += 1;
+        }
         self.client_ips[log_entry.ip] += 1;
 
         // count query path hits
-        if let Some(path) = log_entry.request.uri().path_and_query() {
-            self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.as_str().into()] += 1;
-        } else {
-            // if path doesn't exist, then we still want to count that
-            self.requests_no_query["<none>".to_string()] += 1;
-            self.requests_query["<none>".to_string()] += 1;
-        }
+        let (path, path_no_query) = match log_entry.request {
+            access_log_parser::LogFormatValid::Valid(ref req) => (
+                req.uri()
+                    .path_and_query()
+                    .map(|p| p.as_str())
+                    .unwrap_or("<none>"),
+                req.uri().path(),
+            ),
+            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+        };
+        self.requests_no_query[path_no_query.to_string()] += 1;
+        self.requests_query[path.to_string()] += 1;
 
         // count referrer hits
         if let Some(referrer) = log_entry.referrer {
@@ -274,17 +288,24 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        self.request_methods[log_entry.request.method().clone()] += 1;
+        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+            self.request_methods[req.method().clone()] += 1;
+        }
 
         // count query path hits
-        if let Some(path) = log_entry.request.uri().path_and_query() {
-            self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.as_str().into()] += 1;
-        } else {
-            // if path doesn't exist, then we still want to count that
-            self.requests_no_query["<none>".to_string()] += 1;
-            self.requests_query["<none>".to_string()] += 1;
-        }
+        let (path, path_no_query) = match log_entry.request {
+            access_log_parser::LogFormatValid::Valid(ref req) => (
+                req.uri()
+                    .path_and_query()
+                    .map(|p| p.as_str())
+                    .unwrap_or("<none>"),
+                req.uri().path(),
+            ),
+            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+        };
+        self.requests_no_query[path_no_query.to_string()] += 1;
+        self.requests_query[path.to_string()] += 1;
 
         // count referrer hits
         if let Some(referrer) = log_entry.referrer {
@@ -324,18 +345,25 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        self.request_methods[log_entry.request.method().clone()] += 1;
+        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+            self.request_methods[req.method().clone()] += 1;
+        }
         self.client_ips[log_entry.remote_addr] += 1;
 
         // count query path hits
-        if let Some(path) = log_entry.request.uri().path_and_query() {
-            self.requests_no_query[path.path().into()] += 1;
-            self.requests_query[path.as_str().into()] += 1;
-        } else {
-            // if path doesn't exist, then we still want to count that
-            self.requests_no_query["<none>".to_string()] += 1;
-            self.requests_query["<none>".to_string()] += 1;
-        }
+        let (path, path_no_query) = match log_entry.request {
+            access_log_parser::LogFormatValid::Valid(ref req) => (
+                req.uri()
+                    .path_and_query()
+                    .map(|p| p.as_str())
+                    .unwrap_or("<none>"),
+                req.uri().path(),
+            ),
+            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+        };
+        self.requests_no_query[path_no_query.to_string()] += 1;
+        self.requests_query[path.to_string()] += 1;
 
         // count referrer hits
         if let Some(referrer) = log_entry.referrer {
