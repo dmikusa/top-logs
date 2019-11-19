@@ -14,6 +14,6 @@ categories = ["parsing", "parser-implementations"]
 access_log_parser = "^0"
 chrono = "^0.4"
 http = "^0.1"
-defaultmap = "^0.3"
+defaultmap = "^0.4"
 prettytable-rs = "^0.8"
 clap = "^2"
