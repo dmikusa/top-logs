@@ -55,15 +55,17 @@ Tops logs is a tool which can be used to parse through access logs to understand
     - Top X Client IPs
     - Top X X-Forwarded-For Ips
     - Response time histogram
+    - Gorouter time histogram
     - Top X Backend Address (Cells & Platform VMs)
     - Top X Destination Hosts
     - Top X App GUIDs
+    - Top X x_cf_routererror responses
 
 ## Usage
 
 ```
 $ ./target/release/top-logs -i -f cloud_controller data/cloud_controller/nginx.access.log* -h
-top-logs 1.1.0
+top-logs 1.3.0
 Daniel Mikusa <dmikusa@pivotal.io>
 Parses various access log formats and prints stats helpful for debugging/troubleshooting.
 

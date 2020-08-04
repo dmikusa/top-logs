@@ -126,6 +126,8 @@ pub struct TopInfo {
     pub hosts: DefaultHashMap<String, usize>,
     pub app_ids: DefaultHashMap<String, usize>,
     pub response_times: DefaultHashMap<usize, usize>,
+    pub gorouter_times: DefaultHashMap<usize, usize>,
+    pub x_cf_routererrors: DefaultHashMap<String, usize>,
 }
 
 impl TopInfo {
@@ -153,6 +155,8 @@ impl TopInfo {
             hosts: DefaultHashMap::new(0),
             app_ids: DefaultHashMap::new(0),
             response_times: DefaultHashMap::new(0),
+            gorouter_times: DefaultHashMap::new(0),
+            x_cf_routererrors: DefaultHashMap::new(0),
         }
     }
 
@@ -393,6 +397,15 @@ impl TopInfo {
             .response_time
             .map(|t| t.floor() as usize)
             .unwrap_or(usize::max_value())] += 1;
+
+        // bucket gorouter times
+        self.gorouter_times[log_entry
+            .gorouter_time
+            .map(|t| t.floor() as usize)
+            .unwrap_or(usize::max_value())] += 1;
+
+        // count x_cf_routererror hits
+        self.x_cf_routererrors[log_entry.x_cf_routererror.unwrap_or("<none>").to_string()] += 1;
     }
 
     fn print_map<'a, I, K, V>(iter: I, sort_order: &SortOrder, max: usize)
@@ -576,6 +589,81 @@ impl TopInfo {
             table.printstd();
 
             println!();
+        }
+
+        if self.gorouter_times.len() > 0 {
+            println!("Top Gorouter Times");
+            let mut keys: Vec<&usize> = self
+                .gorouter_times
+                .keys()
+                .filter(|&k| *k < usize::max_value())
+                .collect();
+            keys.sort();
+
+            let max_key = **keys.iter().max().unwrap_or(&&0);
+            let max_width = format!("{}", max_key).len();
+
+            println!();
+
+            let mut table = Table::new();
+            table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP);
+
+            let mut bucket_val: usize = 0;
+            let mut bucket_start: usize = 0;
+
+            for key in keys {
+                if bucket_start == 0 {
+                    bucket_start = *key;
+                }
+
+                bucket_val += self.gorouter_times[key];
+
+                if bucket_val >= min_response_time_threshold {
+                    table.add_row(Row::new(vec![
+                        cell!(format!(
+                            "{:width$} to {:width$}",
+                            bucket_start,
+                            key + 1,
+                            width = max_width
+                        )),
+                        cell!(bucket_val),
+                    ]));
+                    bucket_start = 0;
+                    bucket_val = 0;
+                }
+            }
+
+            if bucket_val > 0 {
+                table.add_row(Row::new(vec![
+                    cell!(format!(
+                        "{:width$} to {:width$}",
+                        bucket_start,
+                        max_key + 1,
+                        width = max_width
+                    )),
+                    cell!(bucket_val),
+                ]));
+            }
+
+            if self.gorouter_times.contains_key(&usize::max_value()) {
+                table.add_row(Row::new(vec![
+                    cell!("<none>"),
+                    cell!(self.gorouter_times.get(&usize::max_value())),
+                ]));
+            }
+
+            table.printstd();
+
+            println!();
+        }
+
+        if self.x_cf_routererrors.len() > 0 {
+            println!("Top '{}' CF Router Errors", self.max_results);
+            TopInfo::print_map(
+                self.x_cf_routererrors.iter(),
+                &SortOrder::ByValue,
+                self.max_results,
+            );
         }
     }
 }
