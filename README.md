@@ -65,7 +65,7 @@ Tops logs is a tool which can be used to parse through access logs to understand
 
 ```
 $ ./target/release/top-logs -i -f cloud_controller data/cloud_controller/nginx.access.log* -h
-top-logs 1.3.0
+top-logs 1.3.1
 Daniel Mikusa <dmikusa@pivotal.io>
 Parses various access log formats and prints stats helpful for debugging/troubleshooting.
 
