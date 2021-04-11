@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use access_log_parser;
 use chrono::prelude::*;
 use clap::{crate_version, value_t, App, Arg};
 use defaultmap::DefaultHashMap;
@@ -134,8 +133,8 @@ pub struct TopInfo {
 impl TopInfo {
     pub fn new(max_results: usize, ignore_parse_errors: bool) -> TopInfo {
         TopInfo {
-            max_results: max_results,
-            ignore_parse_errors: ignore_parse_errors,
+            max_results,
+            ignore_parse_errors,
             duration: LogDuration {
                 start: FixedOffset::west(5 * 3600)
                     .ymd(9999, 12, 31)
@@ -169,7 +168,7 @@ impl TopInfo {
     ) -> io::Result<()> {
         let reader = io::BufReader::new(fs::File::open(path)?);
 
-        Ok(reader
+        reader
             .lines()
             .filter_map(|line| match line {
                 Ok(line) => Some(line),
@@ -188,7 +187,8 @@ impl TopInfo {
                         eprintln!("Parse error: {:#?} with line '{}'", err, line);
                     }
                 }
-            }))
+            });
+        Ok(())
     }
 
     fn calc_stats(&mut self, log_entry: access_log_parser::LogEntry) {
@@ -413,7 +413,7 @@ impl TopInfo {
         self.x_cf_routererrors[log_entry.x_cf_routererror.unwrap_or("<none>").to_string()] += 1;
     }
 
-    fn print_map<'a, I, K, V>(iter: I, sort_order: &SortOrder, max: usize)
+    fn print_map<I, K, V>(iter: I, sort_order: &SortOrder, max: usize)
     where
         K: ToString,
         V: Ord + ToString,
@@ -476,7 +476,7 @@ impl TopInfo {
             self.max_results,
         );
 
-        if self.user_agents.len() > 0 {
+        if !self.user_agents.is_empty() {
             println!("Top '{}' User Agents", self.max_results);
             TopInfo::print_map(
                 self.user_agents.iter(),
@@ -485,12 +485,12 @@ impl TopInfo {
             );
         }
 
-        if self.referrers.len() > 0 {
+        if !self.referrers.is_empty() {
             println!("Top '{}' Referrers", self.max_results);
             TopInfo::print_map(self.referrers.iter(), &SortOrder::ByValue, self.max_results);
         }
 
-        if self.client_ips.len() > 0 {
+        if !self.client_ips.is_empty() {
             println!("Top '{}' Client IPs", self.max_results);
             TopInfo::print_map(
                 self.client_ips.iter(),
@@ -499,7 +499,7 @@ impl TopInfo {
             );
         }
 
-        if self.backend_ips.len() > 0 {
+        if !self.backend_ips.is_empty() {
             println!(
                 "Top '{}' Backend Address (Cells & Platform VMs)",
                 self.max_results
@@ -511,7 +511,7 @@ impl TopInfo {
             );
         }
 
-        if self.x_forwarded_fors.len() > 0 {
+        if !self.x_forwarded_fors.is_empty() {
             println!("Top '{}' X-Forwarded-For Ips", self.max_results);
             TopInfo::print_map(
                 self.x_forwarded_fors.iter(),
@@ -520,17 +520,17 @@ impl TopInfo {
             );
         }
 
-        if self.hosts.len() > 0 {
+        if !self.hosts.is_empty() {
             println!("Top '{}' Destination Hosts", self.max_results);
             TopInfo::print_map(self.hosts.iter(), &SortOrder::ByValue, self.max_results);
         }
 
-        if self.app_ids.len() > 0 {
+        if !self.app_ids.is_empty() {
             println!("Top '{}' Application UUIDs", self.max_results);
             TopInfo::print_map(self.app_ids.iter(), &SortOrder::ByValue, self.max_results);
         }
 
-        if self.app_indexes.len() > 0 {
+        if !self.app_indexes.is_empty() {
             println!("Top '{}' Application Indexes", self.max_results);
             TopInfo::print_map(
                 self.app_indexes.iter(),
@@ -539,7 +539,7 @@ impl TopInfo {
             );
         }
 
-        if self.response_times.len() > 0 {
+        if !self.response_times.is_empty() {
             println!("Top Response Times");
             let mut keys: Vec<&usize> = self
                 .response_times
@@ -605,7 +605,7 @@ impl TopInfo {
             println!();
         }
 
-        if self.gorouter_times.len() > 0 {
+        if !self.gorouter_times.is_empty() {
             println!("Top Gorouter Times");
             let mut keys: Vec<&usize> = self
                 .gorouter_times
@@ -671,7 +671,7 @@ impl TopInfo {
             println!();
         }
 
-        if self.x_cf_routererrors.len() > 0 {
+        if !self.x_cf_routererrors.is_empty() {
             println!("Top '{}' CF Router Errors", self.max_results);
             TopInfo::print_map(
                 self.x_cf_routererrors.iter(),
