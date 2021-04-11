@@ -125,6 +125,7 @@ pub struct TopInfo {
     pub x_forwarded_fors: DefaultHashMap<String, usize>,
     pub hosts: DefaultHashMap<String, usize>,
     pub app_ids: DefaultHashMap<String, usize>,
+    pub app_indexes: DefaultHashMap<u16, usize>,
     pub response_times: DefaultHashMap<usize, usize>,
     pub gorouter_times: DefaultHashMap<usize, usize>,
     pub x_cf_routererrors: DefaultHashMap<String, usize>,
@@ -154,6 +155,7 @@ impl TopInfo {
             x_forwarded_fors: DefaultHashMap::new(0),
             hosts: DefaultHashMap::new(0),
             app_ids: DefaultHashMap::new(0),
+            app_indexes: DefaultHashMap::new(0),
             response_times: DefaultHashMap::new(0),
             gorouter_times: DefaultHashMap::new(0),
             x_cf_routererrors: DefaultHashMap::new(0),
@@ -391,6 +393,9 @@ impl TopInfo {
         if let Some(app_id) = log_entry.app_id {
             self.app_ids[app_id.into()] += 1;
         }
+        if let Some(app_index) = log_entry.app_index {
+            self.app_indexes[app_index] += 1;
+        }
 
         // bucket response times
         self.response_times[log_entry
@@ -523,6 +528,15 @@ impl TopInfo {
         if self.app_ids.len() > 0 {
             println!("Top '{}' Application UUIDs", self.max_results);
             TopInfo::print_map(self.app_ids.iter(), &SortOrder::ByValue, self.max_results);
+        }
+
+        if self.app_indexes.len() > 0 {
+            println!("Top '{}' Application Indexes", self.max_results);
+            TopInfo::print_map(
+                self.app_indexes.iter(),
+                &SortOrder::ByValue,
+                self.max_results,
+            );
         }
 
         if self.response_times.len() > 0 {
