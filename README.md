@@ -64,30 +64,36 @@ Tops logs is a tool which can be used to parse through access logs to understand
 ## Usage
 
 ```
-$ ./target/release/top-logs -i -f cloud_controller data/cloud_controller/nginx.access.log* -h
-top-logs 1.3.1
-Daniel Mikusa <dmikusa@pivotal.io>
-Parses various access log formats and prints stats helpful for debugging/troubleshooting.
+top-logs 1.4.0
+Daniel Mikusa <dmikusa@vmware.com>
+Tops logs is a tool which can be used to parse through access logs to understand usage trends and
+hunt for problems
 
 USAGE:
-    top-logs [FLAGS] [OPTIONS] --format <LOG_FORMAT> [ACCESS_LOG]...
+    top-logs [OPTIONS] --format <LOG_FORMAT> <ACCESS_LOG>...
 
-FLAGS:
-    -h, --help                   Prints help information
-    -i, --ignore-parse-errors    Don't log any parsing error
-    -V, --version                Prints version information
+ARGS:
+    <ACCESS_LOG>...    Access logs to process or '-' (a dash) to read from STDIN
 
 OPTIONS:
     -f, --format <LOG_FORMAT>
             access log format [possible values: common, combined, gorouter, cloud_controller]
 
-    -m, --min-response-time-threshold <MIN_THRESHOLD>
-            Minimum threshold in number of requests for a response time bucket to be displayed. Smaller buckets are
-            grouped together. [default: 100]
-    -t, --top <NUM>                                      number of results to display [default: 10]
+    -h, --help
+            Print help information
 
-ARGS:
-    <ACCESS_LOG>...    Access logs to process
+    -i, --ignore-parse-errors
+            Don't log any parsing error
+
+    -m, --min-response-time-threshold <MIN_THRESHOLD>
+            Minimum threshold in number of requests for a response time bucket to be displayed.
+            Smaller buckets are grouped together. [default: 100]
+
+    -t, --top <NUM>
+            number of results to display [default: 10]
+
+    -V, --version
+            Print version information
 ```
 
 ## Tips

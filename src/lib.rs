@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use anyhow::Result;
 use chrono::prelude::*;
-use clap::{crate_version, value_t, App, Arg};
 use defaultmap::DefaultHashMap;
 use http::{Method, StatusCode};
 use prettytable::{cell, Row, Table};
@@ -21,63 +21,6 @@ use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::net::IpAddr;
-
-fn main() {
-    let matches = App::new("top-logs")
-                    .version(crate_version!())
-                    .author("Daniel Mikusa <dmikusa@pivotal.io>")
-                    .about("Parses various access log formats and prints stats helpful for debugging/troubleshooting.")
-                    .arg(Arg::with_name("top")
-                            .short("t")
-                            .long("top")
-                            .value_name("NUM")
-                            .default_value("10")
-                            .help("number of results to display")
-                            .takes_value(true))
-                    .arg(Arg::with_name("format")
-                            .short("f")
-                            .long("format")
-                            .value_name("LOG_FORMAT")
-                            .required(true)
-                            .help("access log format")
-                            .takes_value(true)
-                            .possible_values(&["common", "combined", "gorouter", "cloud_controller"]))
-                    .arg(Arg::with_name("ignore_parse_errors")
-                            .short("i")
-                            .long("ignore-parse-errors")
-                            .help("Don't log any parsing error"))
-                    .arg(Arg::with_name("min_response_time_threshold")
-                            .short("m")
-                            .long("min-response-time-threshold")
-                            .value_name("MIN_THRESHOLD")
-                            .help("Minimum threshold in number of requests for a response time bucket to be displayed. Smaller buckets are grouped together.")
-                            .takes_value(true)
-                            .default_value("100"))
-                    .arg(Arg::with_name("access_logs")
-                            .value_name("ACCESS_LOG")
-                            .help("Access logs to process")
-                            .index(1)
-                            .multiple(true)
-                            .takes_value(true))
-                    .get_matches();
-
-    let mut ti = TopInfo::new(
-        value_t!(matches, "top", usize).unwrap(),
-        matches.is_present("ignore_parse_errors"),
-    );
-
-    for file in matches.values_of("access_logs").unwrap() {
-        match ti.process_file(
-            file,
-            value_t!(matches, "format", access_log_parser::LogType).unwrap(),
-        ) {
-            Ok(()) => (),
-            Err(msg) => eprintln!("Failed parsing file: {}, message: {}", file, msg),
-        }
-    }
-
-    ti.print_summary(value_t!(matches, "min_response_time_threshold", usize).unwrap());
-}
 
 pub enum SortOrder {
     ByValue,
@@ -161,12 +104,13 @@ impl TopInfo {
         }
     }
 
-    pub fn process_file(
-        &mut self,
-        path: &str,
-        log_type: access_log_parser::LogType,
-    ) -> io::Result<()> {
-        let reader = io::BufReader::new(fs::File::open(path)?);
+    pub fn process_file(&mut self, path: &str, log_type: access_log_parser::LogType) -> Result<()> {
+        let tmp = io::stdin();
+        let reader: io::BufReader<Box<dyn io::Read>> = if path.trim() == "-" {
+            io::BufReader::new(Box::new(tmp.lock()))
+        } else {
+            io::BufReader::new(Box::new(fs::File::open(path)?))
+        };
 
         reader
             .lines()
@@ -216,22 +160,22 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+        if let access_log_parser::RequestResult::Valid(ref req) = log_entry.request {
             self.request_methods[req.method().clone()] += 1;
         }
         self.client_ips[log_entry.ip] += 1;
 
         // count query path hits
         let (path, path_no_query) = match log_entry.request {
-            access_log_parser::LogFormatValid::Valid(ref req) => (
+            access_log_parser::RequestResult::Valid(ref req) => (
                 req.uri()
                     .path_and_query()
                     .map(|p| p.as_str())
                     .unwrap_or("<none>"),
                 req.uri().path(),
             ),
-            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
-            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+            access_log_parser::RequestResult::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::RequestResult::InvalidRequest(path) => (path, ""),
         };
         self.requests_no_query[path_no_query.to_string()] += 1;
         self.requests_query[path.to_string()] += 1;
@@ -251,22 +195,22 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+        if let access_log_parser::RequestResult::Valid(ref req) = log_entry.request {
             self.request_methods[req.method().clone()] += 1;
         }
         self.client_ips[log_entry.ip] += 1;
 
         // count query path hits
         let (path, path_no_query) = match log_entry.request {
-            access_log_parser::LogFormatValid::Valid(ref req) => (
+            access_log_parser::RequestResult::Valid(ref req) => (
                 req.uri()
                     .path_and_query()
                     .map(|p| p.as_str())
                     .unwrap_or("<none>"),
                 req.uri().path(),
             ),
-            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
-            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+            access_log_parser::RequestResult::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::RequestResult::InvalidRequest(path) => (path, ""),
         };
         self.requests_no_query[path_no_query.to_string()] += 1;
         self.requests_query[path.to_string()] += 1;
@@ -294,21 +238,21 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+        if let access_log_parser::RequestResult::Valid(ref req) = log_entry.request {
             self.request_methods[req.method().clone()] += 1;
         }
 
         // count query path hits
         let (path, path_no_query) = match log_entry.request {
-            access_log_parser::LogFormatValid::Valid(ref req) => (
+            access_log_parser::RequestResult::Valid(ref req) => (
                 req.uri()
                     .path_and_query()
                     .map(|p| p.as_str())
                     .unwrap_or("<none>"),
                 req.uri().path(),
             ),
-            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
-            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+            access_log_parser::RequestResult::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::RequestResult::InvalidRequest(path) => (path, ""),
         };
         self.requests_no_query[path_no_query.to_string()] += 1;
         self.requests_query[path.to_string()] += 1;
@@ -351,22 +295,22 @@ impl TopInfo {
 
         // count individual resources
         self.response_codes[log_entry.status_code] += 1;
-        if let access_log_parser::LogFormatValid::Valid(ref req) = log_entry.request {
+        if let access_log_parser::RequestResult::Valid(ref req) = log_entry.request {
             self.request_methods[req.method().clone()] += 1;
         }
         self.client_ips[log_entry.remote_addr] += 1;
 
         // count query path hits
         let (path, path_no_query) = match log_entry.request {
-            access_log_parser::LogFormatValid::Valid(ref req) => (
+            access_log_parser::RequestResult::Valid(ref req) => (
                 req.uri()
                     .path_and_query()
                     .map(|p| p.as_str())
                     .unwrap_or("<none>"),
                 req.uri().path(),
             ),
-            access_log_parser::LogFormatValid::InvalidPath(path, _err) => (path, ""),
-            access_log_parser::LogFormatValid::InvalidRequest(path) => (path, ""),
+            access_log_parser::RequestResult::InvalidPath(path, _err) => (path, ""),
+            access_log_parser::RequestResult::InvalidRequest(path) => (path, ""),
         };
         self.requests_no_query[path_no_query.to_string()] += 1;
         self.requests_query[path.to_string()] += 1;
