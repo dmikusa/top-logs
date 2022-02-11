@@ -194,8 +194,8 @@ jobs:
           args: '--release'
       - uses: actions/upload-artifact@master
         with:
-          name: bt-${{ matrix.target }}
-          path: ./target/release/bt${{ matrix.suffix }}
+          name: top-logs-${{ matrix.target }}
+          path: ./target/release/top-logs${{ matrix.suffix }}
   release:
     if: github.ref == 'refs/heads/main'
     needs:
@@ -216,16 +216,16 @@ jobs:
         shell: bash
       - uses: actions/download-artifact@master
         with:
-          name: bt-x86_64-unknown-linux-gnu
-          path: bt-x86_64-unknown-linux-gnu
+          name: top-logs-x86_64-unknown-linux-gnu
+          path: top-logs-x86_64-unknown-linux-gnu
       - uses: actions/download-artifact@master
         with:
-          name: bt-x86_64-apple-darwin
-          path: bt-x86_64-apple-darwin
+          name: top-logs-x86_64-apple-darwin
+          path: top-logs-x86_64-apple-darwin
       - uses: actions/download-artifact@master
         with:
-          name: bt-x86_64-pc-windows-msvc
-          path: bt-x86_64-pc-windows-msvc
+          name: top-logs-x86_64-pc-windows-msvc
+          path: top-logs-x86_64-pc-windows-msvc
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -239,7 +239,7 @@ jobs:
           TEMP_FILE="$(mktemp)"
           toml set Cargo.toml package.version "${VERSION:1}" > "$TEMP_FILE"
           mv "$TEMP_FILE" Cargo.toml
-          ls -la /home/runner/work/binding-tool/binding-tool
+          ls -la /home/runner/work/top-logs/top-logs
         shell: bash
         env:
           VERSION: '${{ steps.get_version.outputs.VERSION }}'
@@ -262,22 +262,22 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         with:
           upload_url: '${{ steps.create_release.outputs.upload_url }}'
-          asset_path: ./bt-x86_64-unknown-linux-gnu/bt
-          asset_name: bt-x86_64-unknown-linux-gnu
+          asset_path: ./top-logs-x86_64-unknown-linux-gnu/top-logs
+          asset_name: top-logs-x86_64-unknown-linux-gnu
           asset_content_type: application/octet-stream
       - uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         with:
           upload_url: '${{ steps.create_release.outputs.upload_url }}'
-          asset_path: ./bt-x86_64-apple-darwin/bt
-          asset_name: bt-x86_64-apple-darwin
+          asset_path: ./top-logs-x86_64-apple-darwin/top-logs
+          asset_name: top-logs-x86_64-apple-darwin
           asset_content_type: application/octet-stream
       - uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         with:
           upload_url: '${{ steps.create_release.outputs.upload_url }}'
-          asset_path: ./bt-x86_64-pc-windows-msvc/bt.exe
-          asset_name:  bt-x86_64-pc-windows-msvc.exe
+          asset_path: ./top-logs-x86_64-pc-windows-msvc/top-logs.exe
+          asset_name:  top-logs-x86_64-pc-windows-msvc.exe
           asset_content_type: application/octet-stream
