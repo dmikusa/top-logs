@@ -15,7 +15,7 @@ access_log_parser = "0.7"
 chrono = "0.4"
 http = "0.2"
 defaultmap = "0.5"
-prettytable-rs = "0.8"
+prettytable-rs = "0.9"
 anyhow = "*"
 
 [dependencies.clap]
