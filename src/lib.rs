@@ -79,10 +79,8 @@ impl TopInfo {
             max_results,
             ignore_parse_errors,
             duration: LogDuration {
-                start: FixedOffset::west(5 * 3600)
-                    .ymd(9999, 12, 31)
-                    .and_hms(23, 59, 59),
-                end: FixedOffset::west(5 * 3600).ymd(0, 1, 1).and_hms(0, 0, 0),
+                start: DateTime::default(),
+                end: DateTime::default(),
             },
             total_requests: 0,
             errors: 0,
