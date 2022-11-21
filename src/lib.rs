@@ -540,7 +540,7 @@ impl TopInfo {
             if self.response_times.contains_key(&usize::max_value()) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.response_times.get(&usize::max_value())),
+                    cell!(self.response_times.get(usize::max_value())),
                 ]));
             }
 
@@ -606,7 +606,7 @@ impl TopInfo {
             if self.gorouter_times.contains_key(&usize::max_value()) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.gorouter_times.get(&usize::max_value())),
+                    cell!(self.gorouter_times.get(usize::max_value())),
                 ]));
             }
 
