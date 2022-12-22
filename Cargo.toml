@@ -11,12 +11,16 @@ keywords = ["access", "logs", "parse"]
 categories = ["parsing", "parser-implementations"]
 
 [dependencies]
-access_log_parser = "0.7"
-chrono = "0.4"
+access_log_parser = "0.8"
 http = "0.2"
 defaultmap = "0.5"
 prettytable-rs = "0.9"
 anyhow = "1.0"
+
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["clock"]
 
 [dependencies.clap]
 version = "4.0"
