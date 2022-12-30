@@ -14,7 +14,7 @@ categories = ["parsing", "parser-implementations"]
 access_log_parser = "0.8"
 http = "0.2"
 defaultmap = "0.5"
-prettytable-rs = "0.9"
+prettytable-rs = "0.10"
 anyhow = "1.0"
 
 [dependencies.chrono]
