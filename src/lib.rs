@@ -115,7 +115,7 @@ impl TopInfo {
             .filter_map(|line| match line {
                 Ok(line) => Some(line),
                 Err(msg) => {
-                    eprintln!("Read failed: {:#?}", msg);
+                    eprintln!("Read failed: {msg:#?}",);
                     None
                 }
             })
@@ -126,7 +126,7 @@ impl TopInfo {
                 Err(err) => {
                     self.errors += 1;
                     if !self.ignore_parse_errors {
-                        eprintln!("Parse error: {:#?} with line '{}'", err, line);
+                        eprintln!("Parse error: {err:#?} with line '{line}'");
                     }
                 }
             });
@@ -491,7 +491,7 @@ impl TopInfo {
             keys.sort();
 
             let max_key = **keys.iter().max().unwrap_or(&&0);
-            let max_width = format!("{}", max_key).len();
+            let max_width = format!("{max_key}").len();
 
             println!();
 
@@ -557,7 +557,7 @@ impl TopInfo {
             keys.sort();
 
             let max_key = **keys.iter().max().unwrap_or(&&0);
-            let max_width = format!("{}", max_key).len();
+            let max_width = format!("{max_key}").len();
 
             println!();
 
