@@ -1,6 +1,6 @@
 [package]
 name = "top-logs"
-version = "1.27.0"
+version = "1.28.0"
 authors = ["Daniel Mikusa <dmikusa@vmware.com>"]
 edition = "2018"
 description = "Tops logs is a tool which can be used to parse through access logs to understand usage trends and hunt for problems"
