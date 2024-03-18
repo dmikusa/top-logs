@@ -12,7 +12,7 @@ categories = ["parsing", "parser-implementations"]
 
 [dependencies]
 access_log_parser = "0.8"
-http = "0.2"
+http = "1.1"
 defaultmap = "0.5"
 prettytable-rs = "0.10"
 anyhow = "1.0"
