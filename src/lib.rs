@@ -84,21 +84,21 @@ impl TopInfo {
             },
             total_requests: 0,
             errors: 0,
-            response_codes: DefaultHashMap::new(0),
-            request_methods: DefaultHashMap::new(0),
-            requests_no_query: DefaultHashMap::new(0),
-            requests_query: DefaultHashMap::new(0),
-            client_ips: DefaultHashMap::new(0),
-            referrers: DefaultHashMap::new(0),
-            user_agents: DefaultHashMap::new(0),
-            backend_ips: DefaultHashMap::new(0),
-            x_forwarded_fors: DefaultHashMap::new(0),
-            hosts: DefaultHashMap::new(0),
-            app_ids: DefaultHashMap::new(0),
-            app_indexes: DefaultHashMap::new(0),
-            response_times: DefaultHashMap::new(0),
-            gorouter_times: DefaultHashMap::new(0),
-            x_cf_routererrors: DefaultHashMap::new(0),
+            response_codes: DefaultHashMap::new(),
+            request_methods: DefaultHashMap::new(),
+            requests_no_query: DefaultHashMap::new(),
+            requests_query: DefaultHashMap::new(),
+            client_ips: DefaultHashMap::new(),
+            referrers: DefaultHashMap::new(),
+            user_agents: DefaultHashMap::new(),
+            backend_ips: DefaultHashMap::new(),
+            x_forwarded_fors: DefaultHashMap::new(),
+            hosts: DefaultHashMap::new(),
+            app_ids: DefaultHashMap::new(),
+            app_indexes: DefaultHashMap::new(),
+            response_times: DefaultHashMap::new(),
+            gorouter_times: DefaultHashMap::new(),
+            x_cf_routererrors: DefaultHashMap::new(),
         }
     }
 
@@ -276,7 +276,7 @@ impl TopInfo {
         self.response_times[log_entry
             .response_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
     }
 
     fn calc_gorouter_log(&mut self, log_entry: access_log_parser::GorouterLogEntry) {
@@ -343,13 +343,13 @@ impl TopInfo {
         self.response_times[log_entry
             .response_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
 
         // bucket gorouter times
         self.gorouter_times[log_entry
             .gorouter_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
 
         // count x_cf_routererror hits
         self.x_cf_routererrors[log_entry.x_cf_routererror.unwrap_or("<none>").to_string()] += 1;
@@ -391,18 +391,10 @@ impl TopInfo {
         println!();
 
         println!("Response Codes:");
-        TopInfo::print_map(
-            self.response_codes.iter(),
-            &SortOrder::ByKey,
-            usize::max_value(),
-        );
+        TopInfo::print_map(self.response_codes.iter(), &SortOrder::ByKey, usize::MAX);
 
         println!("Request Methods:");
-        TopInfo::print_map(
-            self.request_methods.iter(),
-            &SortOrder::ByValue,
-            usize::max_value(),
-        );
+        TopInfo::print_map(self.request_methods.iter(), &SortOrder::ByValue, usize::MAX);
 
         println!("Top '{}' Requests (no query params)", self.max_results);
         TopInfo::print_map(
@@ -486,7 +478,7 @@ impl TopInfo {
             let mut keys: Vec<&usize> = self
                 .response_times
                 .keys()
-                .filter(|&k| *k < usize::max_value())
+                .filter(|&k| *k < usize::MAX)
                 .collect();
             keys.sort();
 
@@ -535,10 +527,10 @@ impl TopInfo {
                 ]));
             }
 
-            if self.response_times.contains_key(&usize::max_value()) {
+            if self.response_times.contains_key(&usize::MAX) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.response_times.get(usize::max_value())),
+                    cell!(self.response_times.get(usize::MAX)),
                 ]));
             }
 
@@ -552,7 +544,7 @@ impl TopInfo {
             let mut keys: Vec<&usize> = self
                 .gorouter_times
                 .keys()
-                .filter(|&k| *k < usize::max_value())
+                .filter(|&k| *k < usize::MAX)
                 .collect();
             keys.sort();
 
@@ -601,10 +593,10 @@ impl TopInfo {
                 ]));
             }
 
-            if self.gorouter_times.contains_key(&usize::max_value()) {
+            if self.gorouter_times.contains_key(&usize::MAX) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.gorouter_times.get(usize::max_value())),
+                    cell!(self.gorouter_times.get(usize::MAX)),
                 ]));
             }
 
