@@ -276,7 +276,7 @@ impl TopInfo {
         self.response_times[log_entry
             .response_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
     }
 
     fn calc_gorouter_log(&mut self, log_entry: access_log_parser::GorouterLogEntry) {
@@ -343,13 +343,13 @@ impl TopInfo {
         self.response_times[log_entry
             .response_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
 
         // bucket gorouter times
         self.gorouter_times[log_entry
             .gorouter_time
             .map(|t| t.floor() as usize)
-            .unwrap_or(usize::max_value())] += 1;
+            .unwrap_or(usize::MAX)] += 1;
 
         // count x_cf_routererror hits
         self.x_cf_routererrors[log_entry.x_cf_routererror.unwrap_or("<none>").to_string()] += 1;
@@ -391,18 +391,10 @@ impl TopInfo {
         println!();
 
         println!("Response Codes:");
-        TopInfo::print_map(
-            self.response_codes.iter(),
-            &SortOrder::ByKey,
-            usize::max_value(),
-        );
+        TopInfo::print_map(self.response_codes.iter(), &SortOrder::ByKey, usize::MAX);
 
         println!("Request Methods:");
-        TopInfo::print_map(
-            self.request_methods.iter(),
-            &SortOrder::ByValue,
-            usize::max_value(),
-        );
+        TopInfo::print_map(self.request_methods.iter(), &SortOrder::ByValue, usize::MAX);
 
         println!("Top '{}' Requests (no query params)", self.max_results);
         TopInfo::print_map(
@@ -486,7 +478,7 @@ impl TopInfo {
             let mut keys: Vec<&usize> = self
                 .response_times
                 .keys()
-                .filter(|&k| *k < usize::max_value())
+                .filter(|&k| *k < usize::MAX)
                 .collect();
             keys.sort();
 
@@ -535,10 +527,10 @@ impl TopInfo {
                 ]));
             }
 
-            if self.response_times.contains_key(&usize::max_value()) {
+            if self.response_times.contains_key(&usize::MAX) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.response_times.get(usize::max_value())),
+                    cell!(self.response_times.get(usize::MAX)),
                 ]));
             }
 
@@ -552,7 +544,7 @@ impl TopInfo {
             let mut keys: Vec<&usize> = self
                 .gorouter_times
                 .keys()
-                .filter(|&k| *k < usize::max_value())
+                .filter(|&k| *k < usize::MAX)
                 .collect();
             keys.sort();
 
@@ -601,10 +593,10 @@ impl TopInfo {
                 ]));
             }
 
-            if self.gorouter_times.contains_key(&usize::max_value()) {
+            if self.gorouter_times.contains_key(&usize::MAX) {
                 table.add_row(Row::new(vec![
                     cell!("<none>"),
-                    cell!(self.gorouter_times.get(usize::max_value())),
+                    cell!(self.gorouter_times.get(usize::MAX)),
                 ]));
             }
 
