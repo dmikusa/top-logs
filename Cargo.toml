@@ -11,9 +11,9 @@ keywords = ["access", "logs", "parse"]
 categories = ["parsing", "parser-implementations"]
 
 [dependencies]
-access_log_parser = "0.8"
-http = "0.2"
-defaultmap = "0.5"
+access_log_parser = "0.9"
+http = "1"
+defaultmap = "0.6"
 prettytable-rs = "0.10"
 anyhow = "1.0"
 
