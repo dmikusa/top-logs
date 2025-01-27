@@ -1,21 +1,21 @@
 [package]
 name = "top-logs"
 version = "1.83.0"
-authors = ["Daniel Mikusa <dmikusa@vmware.com>"]
+authors = ["Daniel Mikusa <dan@mikusa.com>"]
 edition = "2018"
 description = "Tops logs is a tool which can be used to parse through access logs to understand usage trends and hunt for problems"
-repository = "https://github.com/dmikusa-pivotal/top-logs"
+repository = "https://github.com/dmikusa/top-logs"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = ["access", "logs", "parse"]
 categories = ["parsing", "parser-implementations"]
 
 [dependencies]
-access_log_parser = "0.9"
+access_log_parser = "0.11"
 http = "1"
 defaultmap = "0.6"
 prettytable-rs = "0.10"
-anyhow = "1.0"
+anyhow = "1"
 
 [dependencies.chrono]
 version = "0.4"
