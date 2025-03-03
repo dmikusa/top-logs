@@ -545,7 +545,7 @@ dependencies = [
 
 [[package]]
 name = "top-logs"
-version = "1.87.0"
+version = "1.89.0"
 dependencies = [
  "access_log_parser",
  "anyhow",
