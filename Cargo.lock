@@ -148,9 +148,9 @@ dependencies = [
 
 [[package]]
 name = "defaultmap"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15f9f7643e6fa6842f55898be3182c1e5b59447779e0dd55b50f9c601b2bf7c3"
+checksum = "b46e8aabe77202ff475dde82b562c3ede04f39d506c1231729ad015daad916ce"
 dependencies = [
  "derive_more",
  "dyn-clone",
@@ -158,18 +158,18 @@ dependencies = [
 
 [[package]]
 name = "derive_more"
-version = "1.0.0-beta.3"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1335e0609db169713d97c340dd769773c6c63cd953c8fcf1063043fd3d6dd11"
+checksum = "093242cf7570c207c83073cf82f79706fe7b8317e98620a47d5be7c3d8497678"
 dependencies = [
  "derive_more-impl",
 ]
 
 [[package]]
 name = "derive_more-impl"
-version = "1.0.0-beta.3"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df541e0e2a8069352be228ce4b85a1da6f59bfd325e56f57e4b241babbc3f832"
+checksum = "bda628edc44c4bb645fbe0f758797143e4e07926f7ebf4e9bdfbd3d2ce621df3"
 dependencies = [
  "proc-macro2",
  "quote",
